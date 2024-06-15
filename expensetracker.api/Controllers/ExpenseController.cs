@@ -1,5 +1,7 @@
+using expensetracker.api.Application.Services.Interfaces;
 using expensetracker.api.Domain.Common;
 using expensetracker.api.DTO.Create;
+using expensetracker.api.DTO.Get;
 using expensetracker.api.DTO.Update;
 using expensetracker.api.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -7,14 +9,14 @@ using Microsoft.AspNetCore.Mvc;
 namespace expensetracker.api.Controllers
 {
     [Route("[controller]")]
-    public class ExpenseController : Controller
+    public class ExpenseController : BaseController<ExpenseDTO>
     {
         private readonly IExpenseService _expenseService;
         private readonly ILogger<ExpenseController> _logger;
 
-        public ExpenseController(ILogger<ExpenseController> logger, IExpenseService expenseService)
+        public ExpenseController(ILogger<ExpenseController> logger, IExpenseService expenseService, ILinkService linkService)
+            : base(logger, linkService)
         {
-            _logger = logger;
             _expenseService = expenseService;
         }
 
@@ -34,7 +36,7 @@ namespace expensetracker.api.Controllers
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] CreateExpenseDTO expense, CancellationToken cancellationToken)
         {
-            return Ok(await _expenseService.AddExpense(expense,cancellationToken));
+            return Ok(await _expenseService.AddExpense(expense, cancellationToken));
         }
         [HttpGet("totalExpense")]
         public async Task<IActionResult> CalculateExpense(DateTime startDate, DateTime endDate, Category category, CancellationToken cancellationToken)
