@@ -1,3 +1,4 @@
+using expensetracker.api.Application.DTO;
 using expensetracker.api.Domain.Common;
 using expensetracker.api.DTO.Create;
 using expensetracker.api.DTO.Get;

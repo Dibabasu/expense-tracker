@@ -1,5 +1,5 @@
 using System.Linq.Expressions;
-using expensetracker.api.Domain.Common;
+using expensetracker.api.Application.DTO;
 
 namespace expensetracker.api.Persistence.Repositories.Interfaces;
 

@@ -1,14 +1,14 @@
+using expensetracker.api.Application.Common.Interfaces;
 using expensetracker.api.Application.DTO;
 
 namespace expensetracker.api.DTO.Get;
 
-public class ExpenseDTO
+public class ExpenseDTO : ILinkResource
 {
     public Guid Id { get; set; }
-    public string CreatedBy { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
     public decimal Amount { get; set; }
     public DateTime Date { get; set; }
-    public string Category { get; set; } = string.Empty;
-    public IList<LinkDto> Links { get; set; }
+    public string Category { get; set; }
+    public string Description { get; set; }
+    public List<LinkDto> Links { get; set; }
 }

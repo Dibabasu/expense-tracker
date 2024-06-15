@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
-using expensetracker.api.Application.Interfaces;
-using expensetracker.api.Domain.Common;
+using expensetracker.api.Application.Common.Interfaces;
+using expensetracker.api.Application.DTO;
 using expensetracker.api.Persistence.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 

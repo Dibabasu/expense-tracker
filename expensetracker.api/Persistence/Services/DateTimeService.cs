@@ -1,4 +1,4 @@
-using expensetracker.api.Application.Interfaces;
+using expensetracker.api.Application.Common.Interfaces;
 
 namespace expensetracker.api.Persistence.Services;
 

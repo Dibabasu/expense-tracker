@@ -64,14 +64,13 @@ public class ExpenseService : IExpenseService
     public async Task<ExpenseDTO> GetExpenseById(Guid id, CancellationToken cancellationToken)
     {
         var expense = await _expenseRepository.GetByIdAsync(id) ??
-                  throw new Exception($"Expense with ID {id} not found.");
+                      throw new Exception($"Expense with ID {id} not found.");
 
         var expenseDto = MapToDTO(expense);
         expenseDto.Links = _linkService.GenerateLinks<ExpenseDTO>(id);
 
         return expenseDto;
     }
-
     public async Task<PagedResult<ExpenseDTO>> GetExpenses(int pageNumber, int pageSize, CancellationToken cancellationToken)
     {
         var expenses = await _expenseRepository.GetAllAsync(pageNumber, pageSize);
@@ -83,7 +82,10 @@ public class ExpenseService : IExpenseService
             expense.Links = links;
         }
 
-        return new PagedResult<ExpenseDTO>(expenseDTOs, expenses.TotalCount, expenses.PageSize, expenses.PageNumber);
+        var pagedResult = new PagedResult<ExpenseDTO>(expenseDTOs, expenses.TotalCount, expenses.PageSize, expenses.PageNumber);
+        pagedResult.Links = _linkService.GeneratePaginationLinks<ExpenseDTO>(pageNumber, pageSize, expenses.TotalCount);
+
+        return pagedResult;
     }
 
     public async Task<bool> UpdateExpense(Guid id, UpdateExpenseDTO expense, CancellationToken cancellationToken)

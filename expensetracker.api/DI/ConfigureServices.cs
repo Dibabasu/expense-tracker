@@ -1,10 +1,12 @@
-using expensetracker.api.Application.Interfaces;
+using expensetracker.api.Application.Common.Interfaces;
 using expensetracker.api.Application.Services;
+using expensetracker.api.Application.Services.Interfaces;
 using expensetracker.api.Persistence;
 using expensetracker.api.Persistence.Repositories;
 using expensetracker.api.Persistence.Repositories.Interfaces;
 using expensetracker.api.Persistence.Services;
 using expensetracker.api.Services.Interfaces;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
 namespace expensetracker.api.DI
@@ -19,9 +21,10 @@ namespace expensetracker.api.DI
             // Register repositories
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddScoped<IExpenseRepository, ExpenseRepository>();
-
+            services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
             // Register services
             services.AddScoped<IExpenseService, ExpenseService>();
+            services.AddScoped<ILinkService, LinkService>();
             services.AddTransient<IDateTime, DateTimeService>();
             return services;
         }
