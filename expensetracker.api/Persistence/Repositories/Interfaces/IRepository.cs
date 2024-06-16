@@ -10,6 +10,6 @@ public interface IRepository<T> where T : class
     Task AddAsync(T entity);
     Task UpdateAsync(T entity);
     Task DeleteAsync(T entity);
-    Task<PagedResult<T>> GetAllAsync(int pageNumber, int pageSize);
+    Task<PagedResult<T>> GetPagedAsync(int pageNumber, int pageSize);
     Task<PagedResult<T>> FindAsync(Expression<Func<T, bool>> predicate, int pageNumber, int pageSize);
 }

@@ -35,15 +35,13 @@ public class ExpenseService : IExpenseService
                 description: expense.Description);
 
             await _expenseRepository.AddAsync(newExpense);
-
             var expenseDto = MapToDTO(newExpense);
             expenseDto.Links = _linkService.GenerateLinks<ExpenseDTO>(newExpense.Id);
-
             return expenseDto;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error adding expense: {message}", ex.Message);
+            _logger.LogError(ex, "Error adding expense");
             throw;
         }
     }
@@ -63,29 +61,43 @@ public class ExpenseService : IExpenseService
 
     public async Task<ExpenseDTO> GetExpenseById(Guid id, CancellationToken cancellationToken)
     {
-        var expense = await _expenseRepository.GetByIdAsync(id) ??
-                      throw new Exception($"Expense with ID {id} not found.");
+        try
+        {
+            var expense = await _expenseRepository.GetByIdAsync(id);
+            if (expense == null) return null;
 
-        var expenseDto = MapToDTO(expense);
-        expenseDto.Links = _linkService.GenerateLinks<ExpenseDTO>(id);
-
-        return expenseDto;
+            var expenseDto = MapToDTO(expense);
+            expenseDto.Links = _linkService.GenerateLinks<ExpenseDTO>(expense.Id);
+            return expenseDto;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving expense");
+            throw;
+        }
     }
     public async Task<PagedResult<ExpenseDTO>> GetExpenses(int pageNumber, int pageSize, CancellationToken cancellationToken)
     {
-        var expenses = await _expenseRepository.GetAllAsync(pageNumber, pageSize);
-        var expenseDTOs = expenses.Items.Select(MapToDTO).ToList();
 
-        foreach (var expense in expenseDTOs)
+        try
         {
-            var links = _linkService.GenerateLinks<ExpenseDTO>(expense.Id);
-            expense.Links = links;
+            var pagedExpenses = await _expenseRepository.GetPagedAsync(pageNumber, pageSize);
+            var expenseDtos = pagedExpenses.Items.Select(MapToDTO).ToList();
+            foreach (var expenseDto in expenseDtos)
+            {
+                expenseDto.Links = _linkService.GenerateLinks<ExpenseDTO>(expenseDto.Id);
+            }
+
+            return new PagedResult<ExpenseDTO>(expenseDtos, pagedExpenses.TotalCount, pagedExpenses.PageSize, pagedExpenses.PageNumber)
+            {
+                Links = expenseDtos.SelectMany(e => e.Links).ToList()
+            };
         }
-
-        var pagedResult = new PagedResult<ExpenseDTO>(expenseDTOs, expenses.TotalCount, expenses.PageSize, expenses.PageNumber);
-        pagedResult.Links = _linkService.GeneratePaginationLinks<ExpenseDTO>(pageNumber, pageSize, expenses.TotalCount);
-
-        return pagedResult;
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving expenses");
+            throw;
+        }
     }
 
     public async Task<bool> UpdateExpense(Guid id, UpdateExpenseDTO expense, CancellationToken cancellationToken)
@@ -93,52 +105,47 @@ public class ExpenseService : IExpenseService
         try
         {
             var existingExpense = await _expenseRepository.GetByIdAsync(id);
-            if (existingExpense == null)
-                return false;
+            if (existingExpense == null) return false;
 
-            existingExpense.UpdateAmount(new Money(expense.Amount, "USD"));
-            existingExpense.UpdateDescription(expense.Description);
-            existingExpense.UpdateCategory(expense.Category);
-            existingExpense.UpdateDate(expense.Date);
-
+            existingExpense.Update(expense.Category, new Money(expense.Amount, "USD"), expense.Date, expense.Description);
             await _expenseRepository.UpdateAsync(existingExpense);
             return true;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error updating expense with ID: {id}", id);
-            return false;
+            _logger.LogError(ex, "Error updating expense");
+            throw;
         }
     }
 
-    public async Task<bool> DeleteExpense(Guid id, CancellationToken cancellationToken)
-    {
-        try
-        {
-            var existingExpense = await _expenseRepository.GetByIdAsync(id);
-            if (existingExpense == null)
-                return false;
-
-            await _expenseRepository.DeleteAsync(existingExpense);
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting expense with ID: {id}", id);
-            return false;
-        }
-    }
-
-    private static ExpenseDTO MapToDTO(Expense expense)
+    private ExpenseDTO MapToDTO(Expense expense)
     {
         return new ExpenseDTO
         {
             Id = expense.Id,
             Amount = expense.Amount.Amount,
             Date = expense.Date,
-            Category = expense.Category.ToString(),
-            Description = expense.Description,
-            Links = new List<LinkDto>()
+            Category = expense.Category,
+            Description = expense.Description
         };
     }
+
+    public async Task<bool> DeleteExpense(Guid id, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var expense = await _expenseRepository.GetByIdAsync(id);
+            if (expense == null) return false;
+
+            await _expenseRepository.DeleteAsync(expense);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting expense");
+            throw;
+        }
+    }
+
+
 }

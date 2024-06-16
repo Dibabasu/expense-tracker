@@ -1,10 +1,9 @@
 using expensetracker.api.Application.DTO;
 
-namespace expensetracker.api.Application.Common.Interfaces
+namespace expensetracker.api.Application.Common.Interfaces;
+
+public interface ILinkResource
 {
-    public interface ILinkResource
-    {
-        Guid Id { get; }
-        List<LinkDto> Links { get; set; }
-    }
+    Guid Id { get; }
+    List<LinkDto> Links { get; set; }
 }

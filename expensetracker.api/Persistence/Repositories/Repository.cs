@@ -39,7 +39,7 @@ public class Repository<T> : IRepository<T> where T : class
         await _context.SaveChangesAsync();
     }
 
-    public async Task<PagedResult<T>> GetAllAsync(int pageNumber, int pageSize)
+    public async Task<PagedResult<T>> GetPagedAsync(int pageNumber, int pageSize)
     {
         return await PagedResult<T>.GetPagedResultAsync(_dbSet, pageNumber, pageSize);
     }

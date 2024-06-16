@@ -7,6 +7,7 @@ using expensetracker.api.Persistence.Repositories.Interfaces;
 using expensetracker.api.Persistence.Services;
 using expensetracker.api.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.EntityFrameworkCore;
 
 namespace expensetracker.api.DI
@@ -22,6 +23,7 @@ namespace expensetracker.api.DI
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddScoped<IExpenseRepository, ExpenseRepository>();
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
+            services.AddSingleton<IUrlHelperFactory, UrlHelperFactory>();
             // Register services
             services.AddScoped<IExpenseService, ExpenseService>();
             services.AddScoped<ILinkService, LinkService>();

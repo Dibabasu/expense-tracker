@@ -2,14 +2,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace expensetracker.api.Application.DTO;
 
+
 public class PagedResult<T>
 {
-    public IList<T> Items { get; }
-    public int TotalCount { get; }
-    public int PageSize { get; }
-    public int PageNumber { get; }
-    public int TotalPages => (int)Math.Ceiling(TotalCount / (double)PageSize);
-    public List<LinkDto> Links { get; set; } 
+    public IList<T> Items { get; set; }
+    public int TotalCount { get; set; }
+    public int PageSize { get; set; }
+    public int PageNumber { get; set; }
+    public int TotalPages { get; set; }
+    public List<LinkDto> Links { get; set; }
 
     public PagedResult(IList<T> items, int totalCount, int pageSize, int pageNumber)
     {

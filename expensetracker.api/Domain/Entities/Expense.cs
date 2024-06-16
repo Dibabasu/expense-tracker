@@ -12,53 +12,21 @@ namespace expensetracker.api.Domain.Entities
 
         protected Expense() { }
 
-        public Expense(string description, Category category, Money amount, DateTime date)
+        public Expense(Category category, Money amount, DateTime date, string description)
         {
-            SetDescription(description);
-            SetCategory(category);
-            SetAmount(amount);
-            SetDate(date);
-        }
-
-        public void SetDescription(string description)
-        {
-            if (string.IsNullOrWhiteSpace(description))
-                throw new ArgumentException("Description cannot be empty.");
+            Id = Guid.NewGuid();
+            Category = category;
+            Amount = amount;
+            Date = date;
             Description = description;
         }
 
-        public void SetCategory(Category category)
+        public void Update(Category category, Money amount, DateTime date, string description)
         {
             Category = category;
-        }
-
-        public void SetAmount(Money amount)
-        {
-            Amount = amount ?? throw new ArgumentNullException(nameof(amount));
-        }
-
-        public void SetDate(DateTime date)
-        {
+            Amount = amount;
             Date = date;
-        }
-        public void UpdateDescription(string description)
-        {
-            SetDescription(description);
-        }
-
-        public void UpdateCategory(Category category)
-        {
-            SetCategory(category);
-        }
-
-        public void UpdateAmount(Money amount)
-        {
-            SetAmount(amount);
-        }
-
-        public void UpdateDate(DateTime date)
-        {
-            SetDate(date);
+            Description = description;
         }
     }
 }
