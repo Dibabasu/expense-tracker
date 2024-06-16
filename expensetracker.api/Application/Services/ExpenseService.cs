@@ -1,3 +1,4 @@
+using expensetracker.api.Application.Common.Interfaces;
 using expensetracker.api.Application.DTO;
 using expensetracker.api.Application.Services.Interfaces;
 using expensetracker.api.Domain.Common;
@@ -6,21 +7,20 @@ using expensetracker.api.Domain.ValueObjects;
 using expensetracker.api.DTO.Create;
 using expensetracker.api.DTO.Get;
 using expensetracker.api.DTO.Update;
-using expensetracker.api.Persistence.Repositories.Interfaces;
 using expensetracker.api.Services.Interfaces;
 
 namespace expensetracker.api.Application.Services;
 
 public class ExpenseService : IExpenseService
 {
-    private readonly IExpenseRepository _expenseRepository;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly ILinkService _linkService;
     private readonly ILogger<ExpenseService> _logger;
 
-    public ExpenseService(ILogger<ExpenseService> logger, IExpenseRepository expenseRepository, ILinkService linkService)
+    public ExpenseService(ILogger<ExpenseService> logger, IUnitOfWork unitOfWork, ILinkService linkService)
     {
         _logger = logger;
-        _expenseRepository = expenseRepository;
+        _unitOfWork = unitOfWork;
         _linkService = linkService;
     }
 
@@ -29,12 +29,14 @@ public class ExpenseService : IExpenseService
         try
         {
             var newExpense = new Expense(
-                category: expense.Category,
-                amount: new Money(expense.Amount, "USD"),
+        category: expense.Category,
+         amount: new Money(expense.Amount, "USD"),
                 date: expense.Date,
-                description: expense.Description);
+         description: expense.Description);
 
-            await _expenseRepository.AddAsync(newExpense);
+            await _unitOfWork.Expenses.AddAsync(newExpense);
+            await _unitOfWork.CompleteAsync();
+
             var expenseDto = MapToDTO(newExpense);
             expenseDto.Links = _linkService.GenerateLinks<ExpenseDTO>(newExpense.Id);
             return expenseDto;
@@ -50,7 +52,7 @@ public class ExpenseService : IExpenseService
     {
         try
         {
-            return await _expenseRepository.CalculateTotalExpense(startDate, endDate, category);
+            return await _unitOfWork.Expenses.CalculateTotalExpense(startDate, endDate, category);
         }
         catch (Exception ex)
         {
@@ -63,10 +65,8 @@ public class ExpenseService : IExpenseService
     {
         try
         {
-            var expense = await _expenseRepository.GetByIdAsync(id);
-            if (expense == null) return null;
-
-            var expenseDto = MapToDTO(expense);
+            var expense = await _unitOfWork.Expenses.GetByIdAsync(id);
+            if (expense == null) return null; var expenseDto = MapToDTO(expense);
             expenseDto.Links = _linkService.GenerateLinks<ExpenseDTO>(expense.Id);
             return expenseDto;
         }
@@ -76,12 +76,12 @@ public class ExpenseService : IExpenseService
             throw;
         }
     }
+
     public async Task<PagedResult<ExpenseDTO>> GetExpenses(int pageNumber, int pageSize, CancellationToken cancellationToken)
     {
-
         try
         {
-            var pagedExpenses = await _expenseRepository.GetPagedAsync(pageNumber, pageSize);
+            var pagedExpenses = await _unitOfWork.Expenses.GetPagedAsync(pageNumber, pageSize);
             var expenseDtos = pagedExpenses.Items.Select(MapToDTO).ToList();
             foreach (var expenseDto in expenseDtos)
             {
@@ -104,11 +104,11 @@ public class ExpenseService : IExpenseService
     {
         try
         {
-            var existingExpense = await _expenseRepository.GetByIdAsync(id);
+            var existingExpense = await _unitOfWork.Expenses.GetByIdAsync(id);
             if (existingExpense == null) return false;
 
             existingExpense.Update(expense.Category, new Money(expense.Amount, "USD"), expense.Date, expense.Description);
-            await _expenseRepository.UpdateAsync(existingExpense);
+            await _unitOfWork.Expenses.UpdateAsync(existingExpense); await _unitOfWork.CompleteAsync();
             return true;
         }
         catch (Exception ex)
@@ -123,6 +123,7 @@ public class ExpenseService : IExpenseService
         return new ExpenseDTO
         {
             Id = expense.Id,
+
             Amount = expense.Amount.Amount,
             Date = expense.Date,
             Category = expense.Category,
@@ -134,10 +135,9 @@ public class ExpenseService : IExpenseService
     {
         try
         {
-            var expense = await _expenseRepository.GetByIdAsync(id);
-            if (expense == null) return false;
-
-            await _expenseRepository.DeleteAsync(expense);
+            var expense = await _unitOfWork.Expenses.GetByIdAsync(id);
+            if (expense == null) return false; await _unitOfWork.Expenses.DeleteAsync(expense);
+            await _unitOfWork.CompleteAsync();
             return true;
         }
         catch (Exception ex)

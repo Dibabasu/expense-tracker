@@ -9,4 +9,5 @@ public interface IExpenseDbContext
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     int SaveChanges();
     DbSet<T> Set<T>() where T : class;
+    void Dispose();
 }

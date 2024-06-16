@@ -34,6 +34,7 @@ public static class ConfigureServices
         services.AddScoped<IExpenseService, ExpenseService>();
         services.AddScoped<ILinkService, LinkService>();
         services.AddTransient<IDateTime, DateTimeService>();
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 
         services.AddApiVersioning(options =>
