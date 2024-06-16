@@ -3,7 +3,7 @@ using expensetracker.api.Application.DTO;
 using expensetracker.api.Application.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
-namespace expensetracker.api.Controllers;
+namespace expensetracker.api.Controllers.v2;
 public abstract class BaseController<T> : ControllerBase where T : class
 {
     private readonly ILogger _logger;

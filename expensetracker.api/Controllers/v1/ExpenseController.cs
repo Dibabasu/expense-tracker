@@ -1,3 +1,4 @@
+using Asp.Versioning;
 using expensetracker.api.Application.Common;
 using expensetracker.api.Application.Services.Interfaces;
 using expensetracker.api.DTO.Create;
@@ -6,9 +7,11 @@ using expensetracker.api.DTO.Update;
 using expensetracker.api.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
-namespace expensetracker.api.Controllers;
+namespace expensetracker.api.Controllers.v1;
 
-[Route("[controller]")]
+[ApiVersion("1.0")]
+[ApiController]
+[Route("api/[controller]")]
 public class ExpenseController : BaseController<ExpenseDTO>
 {
     private readonly IExpenseService _expenseService;
