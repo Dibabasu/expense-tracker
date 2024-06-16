@@ -1,3 +1,4 @@
+using expensetracker.api.Application.Common;
 using expensetracker.api.Application.Services.Interfaces;
 using expensetracker.api.DTO.Create;
 using expensetracker.api.DTO.Get;
@@ -22,7 +23,22 @@ public class ExpenseController : BaseController<ExpenseDTO>
     public async Task<IActionResult> GetExpenses(int pageNumber = 1, int pageSize = 10, CancellationToken cancellationToken = default)
     {
         var result = await _expenseService.GetExpenses(pageNumber, pageSize, cancellationToken);
+
+        // Generate a combined ETag for the result
+        var etag = ETagHelper.GenerateETag(result);
+
+        // Check If-None-Match header
+        if (Request.Headers.TryGetValue("If-None-Match", out var requestEtag) && requestEtag == etag)
+        {
+            return StatusCode(304); // Not Modified
+        }
+
+        // Set ETag in HttpContext items
+        HttpContext.Items["ETag"] = etag;
+
+        // Add pagination links
         AddPaginationLinks(result, pageNumber, pageSize);
+
         return Ok(result);
     }
 
@@ -30,6 +46,18 @@ public class ExpenseController : BaseController<ExpenseDTO>
     public async Task<IActionResult> Get(Guid id, CancellationToken cancellationToken)
     {
         var expense = await _expenseService.GetExpenseById(id, cancellationToken);
+        if (expense == null) return NotFound();
+
+        var etag = ETagHelper.GenerateETag(expense);
+
+        // Check If-None-Match header
+        if (Request.Headers.TryGetValue("If-None-Match", out var requestEtag) && requestEtag == etag)
+        {
+            return StatusCode(304); // Not Modified
+        }
+
+        // Set ETag in HttpContext items
+        HttpContext.Items["ETag"] = etag;
         AddLinks(expense);
         return Ok(expense);
     }
@@ -38,6 +66,10 @@ public class ExpenseController : BaseController<ExpenseDTO>
     public async Task<IActionResult> Post([FromBody] CreateExpenseDTO expense, CancellationToken cancellationToken)
     {
         var createdExpense = await _expenseService.AddExpense(expense, cancellationToken);
+        var etag = ETagHelper.GenerateETag(createdExpense);
+
+        // Set ETag in HttpContext items
+        HttpContext.Items["ETag"] = etag;
         AddLinks(createdExpense);
         return CreatedAtAction(nameof(Get), new { id = createdExpense.Id }, createdExpense);
     }
@@ -47,7 +79,12 @@ public class ExpenseController : BaseController<ExpenseDTO>
     {
         var success = await _expenseService.UpdateExpense(id, expense, cancellationToken);
         if (!success) return NotFound();
+
         var updatedExpense = await _expenseService.GetExpenseById(id, cancellationToken);
+        var etag = ETagHelper.GenerateETag(updatedExpense);
+
+        // Set ETag in HttpContext items
+        HttpContext.Items["ETag"] = etag;
         AddLinks(updatedExpense);
         return Ok(updatedExpense);
     }
