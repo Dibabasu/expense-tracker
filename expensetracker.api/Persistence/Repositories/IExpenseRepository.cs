@@ -1,7 +1,7 @@
 using expensetracker.api.Domain.Common;
 using expensetracker.api.Domain.Entities;
 
-namespace expensetracker.api.Persistence.Repositories.Interfaces;
+namespace expensetracker.api.Persistence.Repositories;
 
 public interface IExpenseRepository : IRepository<Expense>
 {

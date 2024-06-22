@@ -4,7 +4,7 @@ using expensetracker.api.DTO.Create;
 using expensetracker.api.DTO.Get;
 using expensetracker.api.DTO.Update;
 
-namespace expensetracker.api.Services.Interfaces
+namespace expensetracker.api.Application.Services.Expenses
 {
     public interface IExpenseService
     {

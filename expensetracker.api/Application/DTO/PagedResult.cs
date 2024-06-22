@@ -10,7 +10,7 @@ public class PagedResult<T>
     public int PageSize { get; set; }
     public int PageNumber { get; set; }
     public int TotalPages { get; set; }
-    public List<LinkDto> Links { get; set; }
+    public List<LinkDto>? Links { get; set; }
 
     public PagedResult(IList<T> items, int totalCount, int pageSize, int pageNumber)
     {

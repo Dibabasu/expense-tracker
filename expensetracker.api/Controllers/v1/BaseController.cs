@@ -1,9 +1,11 @@
 using expensetracker.api.Application.Common.Interfaces;
 using expensetracker.api.Application.DTO;
-using expensetracker.api.Application.Services.Interfaces;
+using expensetracker.api.Application.Services.Links;
 using Microsoft.AspNetCore.Mvc;
 
 namespace expensetracker.api.Controllers.v1;
+[Route("[controller]")]
+[ApiController]
 public abstract class BaseController<T> : ControllerBase where T : class
 {
     private readonly ILogger _logger;

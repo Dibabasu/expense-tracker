@@ -1,6 +1,6 @@
 using expensetracker.api.Application.Common.Interfaces;
 using expensetracker.api.Application.DTO;
-using expensetracker.api.Application.Services.Interfaces;
+using expensetracker.api.Application.Services.Links;
 using Microsoft.AspNetCore.Mvc;
 
 namespace expensetracker.api.Controllers.v2;

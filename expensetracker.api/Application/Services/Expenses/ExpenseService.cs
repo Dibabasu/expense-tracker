@@ -1,15 +1,14 @@
 using expensetracker.api.Application.Common.Interfaces;
 using expensetracker.api.Application.DTO;
-using expensetracker.api.Application.Services.Interfaces;
+using expensetracker.api.Application.Services.Links;
 using expensetracker.api.Domain.Common;
 using expensetracker.api.Domain.Entities;
 using expensetracker.api.Domain.ValueObjects;
 using expensetracker.api.DTO.Create;
 using expensetracker.api.DTO.Get;
 using expensetracker.api.DTO.Update;
-using expensetracker.api.Services.Interfaces;
 
-namespace expensetracker.api.Application.Services;
+namespace expensetracker.api.Application.Services.Expenses;
 
 public class ExpenseService : IExpenseService
 {
@@ -65,8 +64,10 @@ public class ExpenseService : IExpenseService
     {
         try
         {
-            var expense = await _unitOfWork.Expenses.GetByIdAsync(id);
-            if (expense == null) return null; var expenseDto = MapToDTO(expense);
+            var expense = await _unitOfWork.Expenses.GetByIdAsync(id)
+             ?? throw new ArgumentException($"Expense with id {id} not found");
+
+            var expenseDto = MapToDTO(expense);
             expenseDto.Links = _linkService.GenerateLinks<ExpenseDTO>(expense.Id);
             return expenseDto;
         }

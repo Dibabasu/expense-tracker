@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import ExpenseModal from './ExpenseModal'; // Import the modal component
+import ExpenseModal from './ExpenseModal';
+import Pagination from '../components/Pagination';
 import { Expense } from '../types/Expense';
 
 
@@ -12,6 +13,9 @@ const Dashboard = () => {
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [currentExpense, setCurrentExpense] = useState<Expense | null>(null);
 
+    const [currentPage, setCurrentPage] = useState<number>(1);
+    const [recordsPerPage, setRecordsPerPage] = useState<number>(10);
+
     useEffect(() => {
         const fetchData = async () => {
             // Mock data
@@ -21,6 +25,16 @@ const Dashboard = () => {
                 { id: 3, description: 'Clothing', category: 'Shopping', amount: 20, date: '2024-06-03' },
                 { id: 4, description: 'Restaurant', category: 'Food', amount: 15, date: '2024-06-04' },
                 { id: 5, description: 'Travel', category: 'Entertainment', amount: 30, date: '2024-06-05' },
+                { id: 11, description: 'Groceries', category: 'Food', amount: 50, date: '2024-06-01' },
+                { id: 12, description: 'Electricity Bill', category: 'Utilities', amount: 75, date: '2024-06-02' },
+                { id: 13, description: 'Clothing', category: 'Shopping', amount: 20, date: '2024-06-03' },
+                { id: 14, description: 'Restaurant', category: 'Food', amount: 15, date: '2024-06-04' },
+                { id: 15, description: 'Travel', category: 'Entertainment', amount: 30, date: '2024-06-05' },
+                { id: 21, description: 'Groceries', category: 'Food', amount: 50, date: '2024-06-01' },
+                { id: 22, description: 'Electricity Bill', category: 'Utilities', amount: 75, date: '2024-06-02' },
+                { id: 23, description: 'Clothing', category: 'Shopping', amount: 20, date: '2024-06-03' },
+                { id: 24, description: 'Restaurant', category: 'Food', amount: 15, date: '2024-06-04' },
+                { id: 25, description: 'Travel', category: 'Entertainment', amount: 30, date: '2024-06-05' },
             ];
 
             setRecentExpenses(expenses);
@@ -52,11 +66,16 @@ const Dashboard = () => {
     };
 
     const filteredExpenses = recentExpenses
-        .filter(expense => 
-            expense.description.toLowerCase().includes(filter.toLowerCase()) || 
+        .filter(expense =>
+            expense.description.toLowerCase().includes(filter.toLowerCase()) ||
             expense.category.toLowerCase().includes(filter.toLowerCase())
         )
         .sort(handleSort);
+
+    const paginatedExpenses = filteredExpenses.slice(
+        (currentPage - 1) * recordsPerPage,
+        currentPage * recordsPerPage
+    );
 
     const openModal = (expense: Expense | null) => {
         setCurrentExpense(expense);
@@ -77,6 +96,11 @@ const Dashboard = () => {
         setTotalExpenses(recentExpenses.reduce((sum, expense) => sum + expense.amount, 0));
         closeModal();
     };
+    const handleDelete = (id?: number) => {
+        const updatedExpenses = recentExpenses.filter(expense => expense.id !== id);
+        setRecentExpenses(updatedExpenses);
+        setTotalExpenses(updatedExpenses.reduce((sum, expense) => sum + expense.amount, 0));
+    };
 
     return (
         <div className="p-4">
@@ -85,7 +109,7 @@ const Dashboard = () => {
                 <h2 className="text-xl">Total Expenses: ${totalExpenses.toFixed(2)}</h2>
             </div>
             <div className="mb-4">
-                <button 
+                <button
                     className="bg-blue-500 text-white px-4 py-2 rounded"
                     onClick={() => openModal(null)}
                 >
@@ -122,33 +146,52 @@ const Dashboard = () => {
                     </select>
                 </div>
                 <div className="bg-white shadow-md rounded p-4">
-                    <div className="grid grid-cols-5 gap-4 border-b pb-2 mb-2">
+                    <div className="grid grid-cols-6 gap-3 border-b pb-2 mb-2">
                         <span className="font-bold">Description</span>
                         <span className="font-bold">Category</span>
                         <span className="font-bold">Date</span>
                         <span className="font-bold">Amount</span>
-                        <span className="font-bold text-center">Actions</span>
+                        <span className="font-bold text-center">Edit</span>
+                        <span className="font-bold text-center">Delete</span>
                     </div>
-                    {filteredExpenses.map(expense => (
-                        <div key={expense.id} className="grid grid-cols-5 gap-4 border-b py-2">
+                    {paginatedExpenses.map(expense => (
+                        <div key={expense.id} className="grid grid-cols-6 gap-3 border-b py-2">
                             <span>{expense.description}</span>
                             <span>{expense.category}</span>
                             <span>{expense.date}</span>
                             <span>${expense.amount.toFixed(2)}</span>
                             <div className="text-center">
-                                <button 
+                                <button
                                     className="text-blue-500"
                                     onClick={() => openModal(expense)}
                                 >
                                     Edit
                                 </button>
                             </div>
+                            <div className="text-center">
+                                <button
+                                    className="text-red-500"
+                                    onClick={() => handleDelete(expense.id)}
+                                >
+                                    Delete
+                                </button>
+                            </div>
                         </div>
                     ))}
                 </div>
+                <Pagination
+                    totalRecords={filteredExpenses.length}
+                    recordsPerPage={recordsPerPage}
+                    currentPage={currentPage}
+                    onPageChange={setCurrentPage}
+                    onRecordsPerPageChange={(num) => {
+                        setRecordsPerPage(num);
+                        setCurrentPage(1); // Reset to first page when changing records per page
+                    }}
+                />
             </div>
             {isModalOpen && (
-                <ExpenseModal 
+                <ExpenseModal
                     expense={currentExpense}
                     onSave={handleSave}
                     onClose={closeModal}

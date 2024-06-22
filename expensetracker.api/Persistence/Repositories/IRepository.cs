@@ -1,7 +1,7 @@
 using System.Linq.Expressions;
 using expensetracker.api.Application.DTO;
 
-namespace expensetracker.api.Persistence.Repositories.Interfaces;
+namespace expensetracker.api.Persistence.Repositories;
 
 
 public interface IRepository<T> where T : class
