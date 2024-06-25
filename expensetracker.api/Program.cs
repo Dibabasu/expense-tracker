@@ -2,34 +2,39 @@ using expensetracker.api.Middleware;
 using expensetracker.api.ServiceConfigs;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-
-
-
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-builder.Services.AddServices(builder.Configuration);
-
-
-
-var app = builder.Build();
-
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+
+    builder.Services.AddControllers();
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen();
+
+    builder.Services.AddCors(p => p.AddPolicy("corsapp", builder =>
+       {
+           builder.WithOrigins("*").AllowAnyMethod().AllowAnyHeader();
+       }));
+
+    builder.Services.AddServices(builder.Configuration);
 }
 
-app.UseHttpsRedirection();
-app.UseMiddleware<ETagMiddleware>();
+var app = builder.Build();
+{
 
-app.UseAuthorization();
+    // Configure the HTTP request pipeline.
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI();
+    }
 
-app.MapControllers();
+    app.UseHttpsRedirection();
 
-app.Run();
+    // Apply the CORS middleware
+    app.UseCors("corsapp");
+    app.UseMiddleware<ETagMiddleware>();
+
+    app.UseAuthorization();
+
+    app.MapControllers();
+
+    app.Run();
+}

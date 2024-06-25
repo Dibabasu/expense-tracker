@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Modal from '../components/Modal'
 import { Expense } from '../types/Expense';
+import { Category } from '../types/Category';
 
 
 
@@ -10,12 +11,13 @@ interface ExpenseModalProps {
     onClose: () => void;
 }
 
-const ExpenseModal: React.FC<ExpenseModalProps> = ({ expense, onSave, onClose }) => {
+const ExpenseModal= ({ expense, onSave, onClose } : ExpenseModalProps) => {
     const [formData, setFormData] = useState<Expense>({
         description: '',
         amount: 0,
         date: '',
-        category: ''
+        category: 1,
+        
     });
 
     useEffect(() => {
@@ -52,7 +54,7 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({ expense, onSave, onClose })
                     <input
                         type="text"
                         name="category"
-                        value={formData.category}
+                        value={Category[formData.category]}
                         onChange={handleChange}
                         className="w-full border p-2 rounded"
                     />

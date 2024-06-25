@@ -1,48 +1,27 @@
 import React, { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState, AppDispatch } from '../store';
+import { fetchExpenses } from '../store/slices/expensesSlice';
 import ExpenseModal from './ExpenseModal';
 import Pagination from '../components/Pagination';
 import { Expense } from '../types/Expense';
-
+import { Category } from '../types/Category';
 
 const Dashboard = () => {
-    const [totalExpenses, setTotalExpenses] = useState<number>(0);
-    const [recentExpenses, setRecentExpenses] = useState<Expense[]>([]);
+    const dispatch: AppDispatch = useDispatch();
+    const { totalExpenses, recentExpenses, loading, error } = useSelector((state: RootState) => state.expenses);
+
     const [filter, setFilter] = useState<string>('');
     const [sortKey, setSortKey] = useState<string>('date');
     const [sortOrder, setSortOrder] = useState<string>('asc');
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [currentExpense, setCurrentExpense] = useState<Expense | null>(null);
-
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [recordsPerPage, setRecordsPerPage] = useState<number>(10);
 
     useEffect(() => {
-        const fetchData = async () => {
-            // Mock data
-            const expenses: Expense[] = [
-                { id: 1, description: 'Groceries', category: 'Food', amount: 50, date: '2024-06-01' },
-                { id: 2, description: 'Electricity Bill', category: 'Utilities', amount: 75, date: '2024-06-02' },
-                { id: 3, description: 'Clothing', category: 'Shopping', amount: 20, date: '2024-06-03' },
-                { id: 4, description: 'Restaurant', category: 'Food', amount: 15, date: '2024-06-04' },
-                { id: 5, description: 'Travel', category: 'Entertainment', amount: 30, date: '2024-06-05' },
-                { id: 11, description: 'Groceries', category: 'Food', amount: 50, date: '2024-06-01' },
-                { id: 12, description: 'Electricity Bill', category: 'Utilities', amount: 75, date: '2024-06-02' },
-                { id: 13, description: 'Clothing', category: 'Shopping', amount: 20, date: '2024-06-03' },
-                { id: 14, description: 'Restaurant', category: 'Food', amount: 15, date: '2024-06-04' },
-                { id: 15, description: 'Travel', category: 'Entertainment', amount: 30, date: '2024-06-05' },
-                { id: 21, description: 'Groceries', category: 'Food', amount: 50, date: '2024-06-01' },
-                { id: 22, description: 'Electricity Bill', category: 'Utilities', amount: 75, date: '2024-06-02' },
-                { id: 23, description: 'Clothing', category: 'Shopping', amount: 20, date: '2024-06-03' },
-                { id: 24, description: 'Restaurant', category: 'Food', amount: 15, date: '2024-06-04' },
-                { id: 25, description: 'Travel', category: 'Entertainment', amount: 30, date: '2024-06-05' },
-            ];
-
-            setRecentExpenses(expenses);
-            setTotalExpenses(expenses.reduce((sum, expense) => sum + expense.amount, 0));
-        };
-
-        fetchData();
-    }, []);
+        dispatch(fetchExpenses({ pageNumber: currentPage, pageSize: recordsPerPage }));
+    }, [dispatch, currentPage, recordsPerPage]);
 
     const handleSort = (a: Expense, b: Expense) => {
         const primarySort = sortOrder === 'asc' ? 1 : -1;
@@ -53,22 +32,21 @@ const Dashboard = () => {
         } else if (sortKey === 'description') {
             if (a.description !== b.description) return primarySort * a.description.localeCompare(b.description);
         } else if (sortKey === 'category') {
-            if (a.category !== b.category) return primarySort * a.category.localeCompare(b.category);
+            if (a.category !== b.category) return primarySort * (a.category - b.category);
         } else if (sortKey === 'date') {
             if (a.date !== b.date) return primarySort * (new Date(a.date).getTime() - new Date(b.date).getTime());
         }
 
         // Secondary sorting criteria
         if (a.description !== b.description) return secondarySort * a.description.localeCompare(b.description);
-        if (a.category !== b.category) return secondarySort * a.category.localeCompare(b.category);
+        if (a.category !== b.category) return secondarySort * (a.category-b.category);
         if (a.amount !== b.amount) return secondarySort * (a.amount - b.amount);
         return secondarySort * (new Date(a.date).getTime() - new Date(b.date).getTime());
     };
 
     const filteredExpenses = recentExpenses
         .filter(expense =>
-            expense.description.toLowerCase().includes(filter.toLowerCase()) ||
-            expense.category.toLowerCase().includes(filter.toLowerCase())
+            expense.description.toLowerCase().includes(filter.toLowerCase()) 
         )
         .sort(handleSort);
 
@@ -89,22 +67,22 @@ const Dashboard = () => {
 
     const handleSave = (expense: Expense) => {
         if (currentExpense) {
-            setRecentExpenses(recentExpenses.map(e => e.id === expense.id ? expense : e));
+            // Update existing expense logic
         } else {
-            setRecentExpenses([...recentExpenses, { ...expense, id: Date.now() }]);
+            // Add new expense logic
         }
-        setTotalExpenses(recentExpenses.reduce((sum, expense) => sum + expense.amount, 0));
         closeModal();
     };
-    const handleDelete = (id?: number) => {
-        const updatedExpenses = recentExpenses.filter(expense => expense.id !== id);
-        setRecentExpenses(updatedExpenses);
-        setTotalExpenses(updatedExpenses.reduce((sum, expense) => sum + expense.amount, 0));
+
+    const handleDelete = (id?: string) => {
+        // Delete expense logic
     };
 
     return (
         <div className="p-4">
             <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
+            {loading && <p>Loading...</p>}
+            {error && <p className="text-red-500">Error: {error}</p>}
             <div className="mb-4">
                 <h2 className="text-xl">Total Expenses: ${totalExpenses.toFixed(2)}</h2>
             </div>
@@ -157,7 +135,7 @@ const Dashboard = () => {
                     {paginatedExpenses.map(expense => (
                         <div key={expense.id} className="grid grid-cols-6 gap-3 border-b py-2">
                             <span>{expense.description}</span>
-                            <span>{expense.category}</span>
+                            <span>{Category[expense.category]}</span>
                             <span>{expense.date}</span>
                             <span>${expense.amount.toFixed(2)}</span>
                             <div className="text-center">
